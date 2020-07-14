@@ -1,8 +1,8 @@
 import numpy as np
 import cv2
 
-cap = cv2.VideoCapture(0)
-
+cap = cv2.VideoCapture(1)
+print("TESTING")
 while(True):
     # Capture frame-by-frame
     ret, frame = cap.read()
@@ -12,7 +12,7 @@ while(True):
 
     # Display the resulting frame
     cv2.imshow('frame',frame)
-    cv2.imshow('gray',gray)
+    cv2.imshow('gray', gray)
     if cv2.waitKey(20) & 0xFF == ord('q'):
         break
 
