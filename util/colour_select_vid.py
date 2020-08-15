@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import os
 
 def nothing(x):
     pass
@@ -38,6 +39,11 @@ while(True):
 
     # Threshold the HSV image to get only blue colors
     mask = cv2.inRange(hsv, lower_colour, upper_colour)
+
+    # Remove noise outside the figure
+    kernel = np.ones(shape=(5, 5), dtype=np.uint8)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+
     inv = cv2.bitwise_not(mask)
 
     # Bitwise-AND mask and original image
@@ -48,7 +54,14 @@ while(True):
     cv2.imshow('res', res)
     cv2.imshow('inv', inv)
 
-    if cv2.waitKey(20) & 0xFF == ord('q'):
+    # Spacebar saves the parameters to a file
+    if cv2.waitKey(10) & 0xFF == ord(' '):
+        with open('hsv_param.txt', 'w') as f:
+            f.write(f"{lh} {ls} {lv} \n")
+            f.write(f"{uh} {us} {uv}")
+
+    # q key exits the program
+    if cv2.waitKey(10) & 0xFF == ord('q'):
         break
 
 cap.release()

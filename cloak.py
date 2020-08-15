@@ -13,7 +13,7 @@ def pipeline(img, img_bg, range_lower, range_upper):
     # Get the mask based
     mask = cv2.inRange(hsv, lower_colour, upper_colour)
 
-    # Remove noise outside the figure
+    # Remove noise outside the figure (can tweak shape later)
     kernel = np.ones(shape=(5, 5), dtype=np.uint8)
     mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
 
@@ -34,12 +34,34 @@ def pipeline(img, img_bg, range_lower, range_upper):
 
     return res, mask, cutout
 
+# HSV Upper and Lower bounds config
+lower_hsv = None
+upper_hsv = None
+with open('hsv_param.txt', 'r') as f:
+    lower_hsv = f.readline().rstrip()
+    lower_hsv = [int(x) for x in lower_hsv.split()]
 
+    upper_hsv = f.readline()
+    upper_hsv = [int(x) for x in upper_hsv.split()]
+
+# VideoWriter config
+filename = "out.avi"
+codec = cv2.VideoWriter_fourcc('X', 'V', 'I', 'D')
+framerate = 30
+resolution = (640, 480)
+
+video_writer = cv2.VideoWriter(filename, codec, framerate, resolution)
+
+# Setup video capture
 cap = cv2.VideoCapture(0)
 
 # Wait 5 seconds before taking first frame as empty background
-time.sleep(5)
+print("Step out of the frame for 5 seconds")
+for i in range(5,0,-1):
+    time.sleep(1)
+    print(i)
 
+# Take an image of the background
 _, bg = cap.read()
 print("background image taken")
 
@@ -48,14 +70,18 @@ while(True):
     _, img = cap.read()
 
     # The lower/upper values must be predetermined
-    res, mask, cutout = pipeline(img, bg, [158, 48, 79], [255, 255, 255])
+    # e.g for a bright green, lower is [39, 74, 7], and upper is [178, 255, 255]
+    res, mask, cutout = pipeline(img, bg, lower_hsv, upper_hsv)
+    video_writer.write(res)
 
-    cv2.imshow('res', res)
-    cv2.imshow('mask', mask)
+    # Show all processed layers
+    # cv2.imshow('res', res)
+    # cv2.imshow('mask', mask)
     cv2.imshow('cutout', cutout)
 
     if cv2.waitKey(20) & 0xFF == ord('q'):
         break
 
+video_writer.release()
 cap.release()
 cv2.destroyAllWindows()
